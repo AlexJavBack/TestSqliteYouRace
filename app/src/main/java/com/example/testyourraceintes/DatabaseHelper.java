@@ -12,6 +12,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static String DB_PATH; // full path to the database
@@ -22,6 +24,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_QUESTION_TEXT = "QuestionText";
     public static final String TABLE_RESULT = "Results";
     public static final String TABLE_RESULT_EMPTY = "ResultsEmpty";
+    public static final String TABLE_LOCALRU = "localRu";
     // name column Answers
     public static final String COLUMN_ANSWERS_ID = "Id";
     public static final String COLUMN_ANSWERS_RACE_NAME = "RaceName";
@@ -42,6 +45,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_RESULT_EMPTY_ID = "Id";
     public static final String COLUMN_RESULT_EMPTY_RACE_NAME = "RaceNameE";
     public static final String COLUMN_RESULT_EMPTY_RACE_VALUE = "RaceValue";
+
+    public static final String COLUMN_LOCALRU_ID = "id";
+    public static final String COLUMN_LOCALRU_TEXT_KEY = "textKey";
+    public static final String COLUMN_LOCALRU_RUSSIAN_TRANSLATE = "russian_translate";
     private Context myContext;
 
 
@@ -53,6 +60,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.execSQL("create table " + TABLE_LOCALRU + "(" + COLUMN_LOCALRU_ID + " INTEGER NOT NULL primary key autoincrement, " + COLUMN_LOCALRU_TEXT_KEY + " string, " + COLUMN_LOCALRU_RUSSIAN_TRANSLATE + " string);");
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion,  int newVersion) {
@@ -85,6 +93,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return SQLiteDatabase.openDatabase(DB_PATH, null, SQLiteDatabase.OPEN_READWRITE);
     }
+
     // get text for field "Answer"
     public String getTextAnswer(SQLiteDatabase db, int radioButtonNumber, int questionNumber) {
         Cursor answer = db.rawQuery("select " + DatabaseHelper.COLUMN_ANSWERS_ANSWER_TEXT +
@@ -139,6 +148,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // rewrite the data from the table to the table the final result and reset the data from
     // the draft
     public void endTesting(SQLiteDatabase db){
+        db.execSQL("Update " + DatabaseHelper.TABLE_RESULT + " SET " + DatabaseHelper.COLUMN_RESULT_RACE_VALUE + " = 0 ");
         Cursor cursor = db.rawQuery("select " + DatabaseHelper.COLUMN_ANSWERS_RACE_NAME + " from " + DatabaseHelper.TABLE_ANSWERS, null);
         if(cursor.moveToFirst()) {
             do {
@@ -149,10 +159,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("Update " + DatabaseHelper.TABLE_RESULT_EMPTY + " SET " + DatabaseHelper.COLUMN_RESULT_EMPTY_RACE_VALUE + " = 0 ");
         cursor.close();
     }
+
     // reset all selections in case of closing the test
-    public void closeTest(SQLiteDatabase db){
+    public void closeTest(SQLiteDatabase db) {
         db.execSQL("Update " + DatabaseHelper.TABLE_RESULT_EMPTY + " SET " + DatabaseHelper.COLUMN_RESULT_EMPTY_RACE_VALUE + " = 0 ");
     }
 
+    public String getLocalText(SQLiteDatabase db, String text){
 
+        Cursor cursor = db.rawQuery("select * from " + DatabaseHelper.TABLE_LOCALRU + " Where " + DatabaseHelper.COLUMN_LOCALRU_TEXT_KEY + " = '" + text + "'",
+                null);
+        cursor.moveToFirst();
+        boolean kirillitcaHave = false;
+        for (RuLanguages r : RuLanguages.values()){
+            if(Locale.getDefault().getLanguage().equals(r.toString())){
+                kirillitcaHave = true;
+                break;
+            }
+        }
+        if(text.equals(cursor.getString(1)) && kirillitcaHave){
+            return cursor.getString(2);
+        }
+        else {
+            return cursor.getString(1);
+        }
+    }
 }

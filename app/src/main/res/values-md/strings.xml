@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Твоя раса в мире TES</string>
+    <string name="app_description">Когда вы играли в TES morrowind, oblivion, skyrim, при создании главного героя вы всегда хотели знать, какой расой вы будете в этой вселенной? Давай выясним. Тест задаст вам 20 вопросов о ваших личных вкусах, физических качествах и психологических особенностях. нажмите кнопку, чтобы начать.</string>
+    <string name="start_test">Начать тест</string>
+    <string name="show_test_result">Результат</string>
+    <string name="author_app">Автор</string>
+</resources>
